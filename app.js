@@ -75,89 +75,94 @@ function goToPlayer(username) {
 
 function removePlayer(team, username) {
     if (team === "A") {
-        teamA.filter(p => p.username !== username)
+        teamA = teamA.filter(p => p.username !== username);
+    } else if (team === "B") {
+        teamB = teamB.filter(p => p.username !== username);
     }
-    if (team === "B") {
-        teamB.filter(p => p.username !== username)
-    }
-    save()
-    renderHome()
 
+    save();
+    renderHome();
 }
 
 function usernameExists(username) {
-    return teamA.includes(username) || teamB.includes(username)
+    return teamA.some(p => p.username === username) ||
+        teamB.some(p => p.username === username);
 }
 
 
 function renderAddPlayer() {
-
-    const teamSelect = document.getElementById("teamSelect")
+    const teamSelect = document.getElementById("teamSelect");
+    const errorDisplay = document.getElementById("error");
 
     teamSelect.innerHTML = `
+        <option value="A" ${teamA.length >= 5 ? "disabled" : ""}>
+            ${teamAName} ${teamA.length >= 5 ? "(Fullt)" : ""}
+        </option>
+        <option value="B" ${teamB.length >= 5 ? "disabled" : ""}>
+            ${teamBName} ${teamB.length >= 5 ? "(Fullt)" : ""}
+        </option>
+    `;
 
-<option value="A" ${teamA.length >= 5 ? "disabled" : ""}>
-${teamAName}
-</option>
+    const form = document.getElementById("playerForm");
 
-<option value="B" ${teamB.length >= 5 ? "disabled" : ""}>
-${teamBName}
-</option>
+    form.onsubmit = function (e) {
+        e.preventDefault();
 
-`
+        const username = document.getElementById("username").value.trim();
 
-    document.getElementById("playerForm").addEventListener("submit", e => {
-
-        e.preventDefault()
-        const username = document.getElementById("username").value
-        if (usernameExists) {
-            document.getElementById("error").textContent = "Username already exists"
+        if (!username) {
+            errorDisplay.textContent = "Du måste ange ett användarnamn";
+            return;
         }
+
+        if (usernameExists(username)) {
+            errorDisplay.textContent = "Användarnamnet är upptaget";
+            return;
+        }
+
         const player = {
-            username,
+            username: username,
             firstname: document.getElementById("firstname").value,
             lastname: document.getElementById("lastname").value,
-            age: document.getElementById("age"),
+            age: document.getElementById("age").value,
             country: document.getElementById("country").value,
-            ranking: document.getElementById("ranking")
+            ranking: document.getElementById("ranking").value
+        };
 
+        const selectedTeam = teamSelect.value;
+        if (selectedTeam === "A") {
+            teamA.push(player);
+        } else if (selectedTeam === "B") {
+            teamB.push(player);
         }
-        const team = document.getElementById("teamSelect").value
-        if (team === "A") {
-            teamA.push(player)
-        }
-        if (team === "B") {
-            teamB.push(player)
-        }
-        save()
-        window.location.href = "index.html"
 
-    })
-
+        save();
+        window.location.href = "index.html";
+    };
 }
 
 function renderPlayerInfo() {
+    const username = localStorage.getItem("selectedPlayer");
 
-    const username = localStorage.getItem("selectedPlayer")
+    const allPlayers = [...teamA, ...teamB];
+    const player = allPlayers.find(p => p.username === username);
 
-    const player = teamA.find(p => p.username === username)
+    const profile = document.getElementById("profile");
 
-    const profile = document.getElementById("profile")
+    if (!player) {
+        profile.innerHTML = "<p>Spelaren hittades inte.</p>";
+        return;
+    }
 
     profile.innerHTML = `
-<div class="profile">
-<h2>${player?.username}</h2>
-<p><b>Name:</b> ${player?.firstname} ${player?.lastname}</p>
-<p><b>Age:</b> ${player?.age}</p>
-<p><b>Country:</b> ${player?.country}</p>
-<p><b>Ranking:</b> ${player?.ranking}</p>
-<br>
-<button onclick="window.location='home.html'">
-Back
-</button>
-
-</div>
-
-`
-
+        <div class="profile">
+            <h2>${player.username}</h2>
+            <p><b>Name:</b> ${player.firstname} ${player.lastname}</p>
+            <p><b>Age:</b> ${player.age}</p>
+            <p><b>Country:</b> ${player.country}</p>
+            <p><b>Ranking:</b> ${player.ranking}</p>
+            <br>
+            <button onclick="window.location='index.html'">Back</button>
+        </div>
+    `;
 }
