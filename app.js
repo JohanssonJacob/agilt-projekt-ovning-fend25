@@ -32,39 +32,42 @@ function renameTeam(team) {
 
 
 function renderHome() {
-    document.getElementById("teamAName").textContent = teamAName
-    document.getElementById("teamBName").textContent = teamBName
-    const listA = document.getElementById("teamAList")
-    const listB = document.getElementById("teamBList")
-    listA.innerHTML = ""
-    listB.innerHTML = ""
+    document.getElementById("teamAName").textContent = teamAName;
+    document.getElementById("teamBName").textContent = teamBName;
+
+    const listA = document.getElementById("teamAList");
+    const listB = document.getElementById("teamBList");
+
+    listA.innerHTML = "";
+    listB.innerHTML = "";
+
     teamA.forEach(p => {
-        const li = document.createElement("li")
-        li.className = "player"
+        const li = document.createElement("li");
+        li.className = "player";
         li.innerHTML = `
+            <span style="cursor:pointer; font-weight:bold;" onclick="goToPlayer(\`${p.username}\`)">
+                ${p.username}
+            </span>
+            <div class="controls">
+                <button onclick="removePlayer('A', \`${p.username}\`)">Remove</button>
+            </div>
+        `;
+        listA.appendChild(li);
+    });
 
-<span onclick="goToPlayer('${p.username}')">${p.username}</span>
-
-<button onclick="removePlayer('A','${p.username}')">
-Remove
-</button>
-
-`
-        listA.appendChild(li)
-    })
     teamB.forEach(p => {
-        const li = document.createElement("li")
-        li.className = "player"
+        const li = document.createElement("li");
+        li.className = "player";
         li.innerHTML = `
-<span onclick="goToPlayer('${p.username}')">${p.username}</span>
-<button onclick="removePlayer('B','${p.username}')">
-Remove
-</button>
-
-`
-        listB.appendChild(li)
-    })
-
+            <span style="cursor:pointer; font-weight:bold;" onclick="goToPlayer(\`${p.username}\`)">
+                ${p.username}
+            </span>
+            <div class="controls">
+                <button onclick="removePlayer('B', \`${p.username}\`)">Remove</button>
+            </div>
+        `;
+        listB.appendChild(li);
+    });
 }
 
 
@@ -142,21 +145,33 @@ function renderAddPlayer() {
 }
 
 function renderPlayerInfo() {
-    const username = localStorage.getItem("selectedPlayer");
+    const storedName = localStorage.getItem("selectedPlayer");
+    const usernameToFind = storedName ? storedName.trim() : "";
 
     const allPlayers = [...teamA, ...teamB];
-    const player = allPlayers.find(p => p.username === username);
+
+    const player = allPlayers.find(p =>
+        p.username.toLowerCase() === usernameToFind.toLowerCase()
+    );
 
     const profile = document.getElementById("profile");
 
     if (!player) {
-        profile.innerHTML = "<p>Spelaren hittades inte.</p>";
+        profile.innerHTML = `
+            <div class="profile">
+                <h2>Spelaren hittades inte</h2>
+                <p>Kunde inte hitta information för: "<b>${usernameToFind}</b>"</p>
+                <br>
+                <button onclick="window.location='index.html'">Tillbaka till listan</button>
+            </div>
+        `;
         return;
     }
 
     profile.innerHTML = `
         <div class="profile">
             <h2>${player.username}</h2>
+            <hr>
             <p><b>Name:</b> ${player.firstname} ${player.lastname}</p>
             <p><b>Age:</b> ${player.age}</p>
             <p><b>Country:</b> ${player.country}</p>
