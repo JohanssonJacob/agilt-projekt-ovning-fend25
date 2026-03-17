@@ -15,6 +15,7 @@ function getSelectedTeam() {
 
 async function addPlayer() {
     const selectedTeam = getSelectedTeam()
+
     if (selectedTeam === "A" && teamA.length >= 5) {
         alert("Team A is full")
         return
@@ -23,19 +24,38 @@ async function addPlayer() {
         alert("Team B is full")
         return
     }
-    const response = await fetch("https://randomuser.me/api")
-    const data = await response.json()
-    const username = data.results[0].login.username
-    const player = {
-        username: username
-    }
+
+    let username
+    let attempts = 0
+    do {
+        const response = await fetch("https://randomuser.me/api")
+        const data = await response.json()
+        username = data.results[0].login.username
+        attempts++
+        if (attempts > 10) {
+            alert("Could not generate a unique username. Try again.")
+            return
+        }
+    } while (usernameExists(username))
+
+    const player = { username }
+
     if (selectedTeam === "A") {
+        if (teamA.length >= 5) {
+            alert("Team A is full")
+            return
+        }
         teamA.push(player)
-        renderTeams()
     } else {
+        if (teamB.length >= 5) {
+            alert("Team B is full")
+            return
+        }
         teamB.push(player)
-        renderTeams()
     }
+
+    save()
+    renderTeams()
 }
 
 function leaveTeam(team, index) {
